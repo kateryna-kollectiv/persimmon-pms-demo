@@ -1,0 +1,142 @@
+// Mock data — providers, ops, appointments, patients
+const AVATARS = ["assets/avatar-1.png","assets/avatar-2.jpg","assets/avatar-3.png","assets/avatar-4.png"];
+
+const OPERATORIES = [
+  { id:"op1", name:"Op 1", doc:"Dr. Whitaker", room:"Room 1", color:"yellow", busy:true },
+  { id:"op2", name:"Op 2", doc:"Dr. Okafor", room:"Room 2", color:"lavender", busy:false },
+  { id:"hygA", name:"Hyg A", doc:"Brenda, RDH", room:"Hygiene 1", color:"mint", busy:true },
+  { id:"hygB", name:"Hyg B", doc:"Macus, RDH", room:"Hygiene 2", color:"pink", busy:false },
+  { id:"op3", name:"Op 3", doc:"Dr. Normand", room:"Room 3", color:"sky", busy:false },
+  { id:"op4", name:"Op 4", doc:"Dr. Sidny", room:"Room 4", color:"cream", busy:false },
+];
+
+const STATUS = {
+  scheduled:  { label:"Scheduled",  cls:"confirmed", color:"#6A697D" },
+  confirmed:  { label:"Confirmed",  cls:"confirmed", color:"#6A697D" },
+  unconfirmed:{ label:"Unconfirmed",cls:"unconfirmed", color:"#A64242" },
+  inchair:    { label:"In chair",   cls:"in-chair",  color:"#162B41" },
+  complete:   { label:"Complete",   cls:"complete",  color:"#5A7A2F" },
+  noshow:     { label:"No-show",    cls:"no-show",   color:"#A64242" },
+};
+
+// Time helpers — schedule starts 8 AM, ends 6 PM (10 hrs), each row = 30 min
+const DAY_START = 8, DAY_END = 18, ROW_MINUTES = 30, ROW_HEIGHT = 80;
+const minsToY = (m) => ((m - DAY_START*60) / ROW_MINUTES) * ROW_HEIGHT;
+const fmtTime = (m) => {
+  const h = Math.floor(m/60), mm = m%60;
+  const am = h < 12;
+  const hh = ((h+11)%12)+1;
+  return `${hh}:${String(mm).padStart(2,'0')} ${am?'AM':'PM'}`;
+};
+
+// Appointments
+const APPTS = [
+  // Op 1 — Dr. Whitaker
+  { id:"a1", op:"op1", patientId:"p1", start:8.5*60,  end:10*60,    color:"yellow",   status:"complete",
+    codes:[{code:"D0150",label:"Comp oral eval"},{code:"D1110",label:"Adult prophy"}], teeth:[14,15,3,4] },
+  { id:"a2", op:"op1", patientId:"p2", start:10*60,   end:11*60,    color:"yellow",   status:"inchair",
+    codes:[{code:"D2740",label:"Crown porcelain"},{code:"D2950",label:"Core buildup"}], teeth:[19] },
+  { id:"a3", op:"op1", patientId:"p3", start:11.5*60, end:13*60,    color:"peach",    status:"confirmed",
+    codes:[{code:"D2740",label:"Crown porcelain"}], teeth:[14] },
+  { id:"a4", op:"op1", patientId:"p4", start:14*60,   end:15.5*60,  color:"yellow",   status:"confirmed",
+    codes:[{code:"D7140",label:"Extraction, erupted"}], teeth:[1,32] },
+  { id:"a5", op:"op1", patientId:"p5", start:16*60,   end:17.5*60,  color:"peach",    status:"unconfirmed",
+    codes:[{code:"D2392",label:"Composite, 2 surf"}], teeth:[19,20] },
+
+  // Op 2 — Dr. Okafor
+  { id:"b1", op:"op2", patientId:"p6", start:9*60,    end:10.5*60,  color:"lavender", status:"complete",
+    codes:[{code:"D0120",label:"Periodic eval"},{code:"D1110",label:"Prophy adult"}], teeth:[] },
+  { id:"b2", op:"op2", patientId:"p7", start:10.5*60, end:12*60,    color:"pink",     status:"confirmed",
+    codes:[{code:"D0120",label:"Periodic eval"},{code:"D2392",label:"Composite, 2 surf"}], teeth:[19] },
+  { id:"b3", op:"op2", patientId:"p8", start:13*60,   end:14.5*60,  color:"lavender", status:"confirmed",
+    codes:[{code:"D2950",label:"Core buildup"}], teeth:[3] },
+  { id:"b4", op:"op2", patientId:"p9", start:15*60,   end:16.5*60,  color:"pink",     status:"unconfirmed",
+    codes:[{code:"D2740",label:"Crown porcelain"}], teeth:[14] },
+
+  // Hyg A — Brenda
+  { id:"c1", op:"hygA", patientId:"p10", start:8*60,   end:9*60,    color:"mint",     status:"complete",
+    codes:[{code:"D1110",label:"Adult prophy"}], teeth:[] },
+  { id:"c2", op:"hygA", patientId:"p11", start:9*60,   end:10*60,   color:"mint",     status:"complete",
+    codes:[{code:"D1110",label:"Adult prophy"},{code:"D0274",label:"Bitewings 4"}], teeth:[] },
+  { id:"c3", op:"hygA", patientId:"p12", start:10*60,  end:11*60,   color:"mint",     status:"inchair",
+    codes:[{code:"D4910",label:"Perio maint"}], teeth:[] },
+  { id:"c4", op:"hygA", patientId:"p13", start:11*60,  end:12*60,   color:"mint",     status:"confirmed",
+    codes:[{code:"D1206",label:"Fluoride varnish"}], teeth:[] },
+  { id:"c5", op:"hygA", patientId:"p14", start:13*60,  end:14*60,   color:"mint",     status:"confirmed",
+    codes:[{code:"D1110",label:"Adult prophy"}], teeth:[] },
+  { id:"c6", op:"hygA", patientId:"p15", start:14*60,  end:15*60,   color:"mint",     status:"confirmed",
+    codes:[{code:"D4910",label:"Perio maint"}], teeth:[] },
+  { id:"c7", op:"hygA", patientId:"p16", start:15*60,  end:16*60,   color:"mint",     status:"unconfirmed",
+    codes:[{code:"D1110",label:"Adult prophy"}], teeth:[] },
+
+  // Hyg B — Macus
+  { id:"d1", op:"hygB", patientId:"p17", start:8.5*60,  end:9.5*60,  color:"pink",   status:"complete",
+    codes:[{code:"D1110",label:"Adult prophy"}], teeth:[] },
+  { id:"d2", op:"hygB", patientId:"p18", start:9.5*60,  end:10.5*60, color:"blush",  status:"noshow",
+    codes:[{code:"D1110",label:"Adult prophy"}], teeth:[] },
+  { id:"d3", op:"hygB", patientId:"p19", start:11*60,   end:12*60,   color:"pink",   status:"confirmed",
+    codes:[{code:"D4341",label:"SRP, 4+ teeth"}], teeth:[] },
+  { id:"d4", op:"hygB", patientId:"p20", start:13*60,   end:14*60,   color:"pink",   status:"confirmed",
+    codes:[{code:"D1110",label:"Adult prophy"}], teeth:[] },
+  { id:"d5", op:"hygB", patientId:"p21", start:14.5*60, end:15.5*60, color:"blush",  status:"confirmed",
+    codes:[{code:"D1110",label:"Adult prophy"},{code:"D0274",label:"Bitewings 4"}], teeth:[] },
+
+  // Op 3 — Dr. Normand
+  { id:"e1", op:"op3", patientId:"p22", start:9*60,   end:10*60,   color:"sky",   status:"complete",
+    codes:[{code:"D2392",label:"Composite, 2 surf"}], teeth:[19] },
+  { id:"e2", op:"op3", patientId:"p23", start:10.5*60,end:12*60,   color:"blue",  status:"confirmed",
+    codes:[{code:"D2740",label:"Crown porcelain"}], teeth:[14] },
+  { id:"e3", op:"op3", patientId:"p24", start:13*60,  end:14.5*60, color:"sky",   status:"confirmed",
+    codes:[{code:"D7210",label:"Surgical extraction"}], teeth:[1] },
+  { id:"e4", op:"op3", patientId:"p25", start:15*60,  end:16.5*60, color:"blue",  status:"unconfirmed",
+    codes:[{code:"D2330",label:"Composite, 1 surf"}], teeth:[8,9] },
+
+  // Op 4 — Dr. Sidny
+  { id:"f1", op:"op4", patientId:"p26", start:9.5*60, end:11*60,  color:"cream", status:"confirmed",
+    codes:[{code:"D2740",label:"Crown porcelain"},{code:"D2950",label:"Core buildup"}], teeth:[19] },
+  { id:"f2", op:"op4", patientId:"p27", start:13.5*60,end:15*60,  color:"cream", status:"confirmed",
+    codes:[{code:"D6010",label:"Implant body"}], teeth:[30] },
+  { id:"f3", op:"op4", patientId:"p28", start:15.5*60,end:17*60,  color:"yellow",status:"confirmed",
+    codes:[{code:"D2740",label:"Crown porcelain"}], teeth:[2] },
+];
+
+// Patients
+const PATIENTS = [
+  { id:"p1",  name:"Maya Hollande",     sin:"DD88-0417-22", dob:"3/14/92",  age:"33y", carrier:"Delta Dental PPO", carrierId:"DD-880417", lastVisit:"10/3/25", balance:142,   flags:["Latex allergy"], avatar:0, sex:"F", phone:"(415) 555-0117", email:"m.hollande@mail.co", address:"482 Oak Ave, San Mateo CA", primaryDr:"Dr. Whitaker" },
+  { id:"p2",  name:"Roberta Delacroix", sin:"RD-0418-09",   dob:"7/22/89",  age:"36y", carrier:"MetLife PPO",      carrierId:"ML-5570-8823", lastVisit:"2/14/26", balance:0,     flags:["Anticoagulant — warfarin"], avatar:1, sex:"F", phone:"(415) 555-2238", email:"r.delacroix@mail.co", address:"117 Elm St, Burlingame CA", primaryDr:"Dr. Whitaker" },
+  { id:"p3",  name:"Peter Harrison",    sin:"PH-2299-14",   dob:"1/9/78",   age:"47y", carrier:"Cigna Dental DPPO",carrierId:"CG10-2231-55", lastVisit:"11/12/25",balance:0,     flags:[], avatar:2, sex:"M", phone:"(650) 555-9913", email:"pharrison@mail.co", address:"22 Pine Rd, Redwood City CA", primaryDr:"Dr. Whitaker" },
+  { id:"p4",  name:"Ethan Park",        sin:"EP-0341-77",   dob:"3/14/85",  age:"40y", carrier:"Cigna Dental DPPO",carrierId:"CG10-2231-55", lastVisit:"4/2/26",  balance:142,   flags:["Premedication — amoxicillin"], avatar:3, sex:"M", phone:"(415) 555-7782", email:"e.park@mail.co", address:"901 Hill Way, San Carlos CA", primaryDr:"Dr. Okafor" },
+  { id:"p5",  name:"Chloe Nakamura",    sin:"CN-0091-08",   dob:"6/22/88",  age:"37y", carrier:"Aetna DMO",        carrierId:"AET-7789-014", lastVisit:"10/3/25", balance:142,   flags:["Pediatric"], avatar:0, sex:"F", phone:"(408) 555-3344", email:"chloe.n@mail.co", address:"55 Cedar Ln, Santa Clara CA", primaryDr:"Dr. Okafor" },
+  { id:"p6",  name:"Marta Hookingston", sin:"MH-1129-02",   dob:"11/29/72", age:"53y", carrier:"Delta Dental PPO", carrierId:"DD-118822", lastVisit:"3/14/26", balance:0,     flags:["Diabetes type 2"], avatar:1, sex:"F", phone:"(415) 555-1102", email:"marta.h@mail.co", address:"304 Lake Dr, San Bruno CA", primaryDr:"Dr. Okafor" },
+  { id:"p7",  name:"Noah Garcia",       sin:"NG-0556-12",   dob:"8/2/95",   age:"30y", carrier:"Guardian PPO",     carrierId:"GD-7715-22", lastVisit:"1/8/26",  balance:55,    flags:["New patient"], avatar:2, sex:"M", phone:"(650) 555-2244", email:"noah.g@mail.co", address:"190 River Rd, Foster City CA", primaryDr:"Dr. Okafor" },
+  { id:"p8",  name:"Ava Martinez",      sin:"AM-3344-71",   dob:"5/19/91",  age:"34y", carrier:"Delta Dental PPO", carrierId:"DD-3344-71", lastVisit:"3/22/26", balance:0,     flags:[], avatar:0, sex:"F", phone:"(415) 555-9931", email:"ava.m@mail.co", address:"77 Bay St, San Francisco CA", primaryDr:"Dr. Whitaker" },
+  { id:"p9",  name:"Olivia J. Brown",   sin:"OB-1188-03",   dob:"9/14/00",  age:"25y", carrier:"Aetna PPO",        carrierId:"AET-1188-03", lastVisit:"Never",   balance:0,     flags:["New patient"], avatar:1, sex:"F", phone:"(408) 555-7714", email:"o.brown@mail.co", address:"12 High St, Mountain View CA", primaryDr:"Dr. Whitaker" },
+  { id:"p10", name:"Jack Russelly",     sin:"JR-7700-99",   dob:"6/30/63",  age:"62y", carrier:"Medicare Adv.",    carrierId:"MA-7700-99", lastVisit:"4/14/26", balance:0,     flags:["Overdue recall"], avatar:2, sex:"M", phone:"(415) 555-6020", email:"j.russelly@mail.co", address:"480 Sunset Blvd, Pacifica CA", primaryDr:"Brenda, RDH" },
+  { id:"p11", name:"Andrea Pop",        sin:"AP-2245-66",   dob:"2/2/82",   age:"43y", carrier:"Delta Dental PPO", carrierId:"DD-2245-66", lastVisit:"4/3/26",  balance:0,     flags:[], avatar:0, sex:"F", phone:"(650) 555-1810", email:"andrea.p@mail.co", address:"63 Park Ave, Belmont CA", primaryDr:"Brenda, RDH" },
+  { id:"p12", name:"Liam Hayes",        sin:"LH-9911-08",   dob:"4/11/08",  age:"17y", carrier:"Cigna Pediatric",  carrierId:"CG-PED-22", lastVisit:"10/22/25",balance:0,     flags:["Pediatric"], avatar:3, sex:"M", phone:"(415) 555-7745", email:"l.hayes@mail.co", address:"21 Glen Ct, Daly City CA", primaryDr:"Brenda, RDH" },
+  { id:"p13", name:"Sara Ito",          sin:"SI-2200-44",   dob:"7/18/79",  age:"46y", carrier:"Guardian PPO",     carrierId:"GD-2200-44", lastVisit:"3/12/26", balance:312,   flags:[], avatar:0, sex:"F", phone:"(415) 555-9009", email:"sara.ito@mail.co", address:"330 Cypress St, Millbrae CA", primaryDr:"Brenda, RDH" },
+  { id:"p14", name:"Marcus Reid",       sin:"MR-1100-22",   dob:"10/30/76", age:"49y", carrier:"Delta Dental PPO", carrierId:"DD-1100-22", lastVisit:"3/30/26", balance:0,     flags:[], avatar:2, sex:"M", phone:"(415) 555-1100", email:"m.reid@mail.co", address:"7 Marina Way, Sausalito CA", primaryDr:"Brenda, RDH" },
+  { id:"p15", name:"Diana Volkov",      sin:"DV-3344-90",   dob:"12/4/97",  age:"28y", carrier:"Aetna PPO",        carrierId:"AET-3344-90", lastVisit:"3/27/26", balance:0,     flags:[], avatar:0, sex:"F", phone:"(415) 555-3380", email:"d.volkov@mail.co", address:"19 Crest Ln, Hillsborough CA", primaryDr:"Brenda, RDH" },
+  { id:"p16", name:"Felix Costa",       sin:"FC-4099-12",   dob:"6/11/86",  age:"39y", carrier:"MetLife PPO",      carrierId:"ML-4099-12", lastVisit:"2/2/26",  balance:78,    flags:[], avatar:3, sex:"M", phone:"(650) 555-4421", email:"felix.c@mail.co", address:"812 Bay Ridge, San Mateo CA", primaryDr:"Brenda, RDH" },
+  { id:"p17", name:"Helen Ng",          sin:"HN-7700-01",   dob:"1/14/65",  age:"60y", carrier:"Medicare Adv.",    carrierId:"MA-7700-01", lastVisit:"4/10/26", balance:0,     flags:[], avatar:0, sex:"F", phone:"(415) 555-7701", email:"helen.ng@mail.co", address:"61 Maple Ave, San Francisco CA", primaryDr:"Macus, RDH" },
+  { id:"p18", name:"Tom Whitfield",     sin:"TW-8810-30",   dob:"5/6/82",   age:"43y", carrier:"Delta Dental PPO", carrierId:"DD-8810-30", lastVisit:"3/19/26", balance:284,   flags:["Anxiety"], avatar:2, sex:"M", phone:"(415) 555-8810", email:"tom.w@mail.co", address:"45 Ridge Rd, Tiburon CA", primaryDr:"Macus, RDH" },
+  { id:"p19", name:"Priya Shah",        sin:"PS-2244-55",   dob:"7/30/93",  age:"32y", carrier:"Aetna PPO",        carrierId:"AET-2244-55", lastVisit:"2/25/26", balance:0,     flags:[], avatar:0, sex:"F", phone:"(415) 555-2244", email:"priya.s@mail.co", address:"301 Fern St, Albany CA", primaryDr:"Macus, RDH" },
+  { id:"p20", name:"Henry Becker",      sin:"HB-3030-77",   dob:"9/9/70",   age:"55y", carrier:"Guardian PPO",     carrierId:"GD-3030-77", lastVisit:"1/19/26", balance:0,     flags:[], avatar:3, sex:"M", phone:"(650) 555-3030", email:"h.becker@mail.co", address:"19 Stone Ave, San Carlos CA", primaryDr:"Macus, RDH" },
+  { id:"p21", name:"Nina Petrova",      sin:"NP-1199-44",   dob:"8/8/88",   age:"37y", carrier:"Delta Dental PPO", carrierId:"DD-1199-44", lastVisit:"3/4/26",  balance:0,     flags:[], avatar:0, sex:"F", phone:"(415) 555-1199", email:"n.petrova@mail.co", address:"77 West Ln, San Bruno CA", primaryDr:"Macus, RDH" },
+  { id:"p22", name:"Owen Frank",        sin:"OF-5500-22",   dob:"4/2/94",   age:"31y", carrier:"Cigna Dental DPPO",carrierId:"CG-5500-22", lastVisit:"3/12/26", balance:0,     flags:[], avatar:2, sex:"M", phone:"(415) 555-5500", email:"o.frank@mail.co", address:"4 Lakewood, Burlingame CA", primaryDr:"Dr. Normand" },
+  { id:"p23", name:"Aisha Khan",        sin:"AK-2299-13",   dob:"11/22/85", age:"40y", carrier:"Aetna PPO",        carrierId:"AET-2299-13", lastVisit:"2/8/26",  balance:0,     flags:["Pregnancy — 2nd trim"], avatar:0, sex:"F", phone:"(408) 555-2299", email:"a.khan@mail.co", address:"506 Spruce, Sunnyvale CA", primaryDr:"Dr. Normand" },
+  { id:"p24", name:"Ben Kowalski",      sin:"BK-4400-09",   dob:"3/30/68",  age:"57y", carrier:"Medicare Adv.",    carrierId:"MA-4400-09", lastVisit:"1/22/26", balance:0,     flags:[], avatar:3, sex:"M", phone:"(415) 555-4400", email:"b.kowalski@mail.co", address:"82 Bayfront, Brisbane CA", primaryDr:"Dr. Normand" },
+  { id:"p25", name:"Lina Cho",          sin:"LC-7711-22",   dob:"2/18/02",  age:"23y", carrier:"Cigna Dental DPPO",carrierId:"CG-7711-22", lastVisit:"Never",   balance:0,     flags:["New patient"], avatar:0, sex:"F", phone:"(650) 555-7711", email:"lina.c@mail.co", address:"31 Vista Pl, San Mateo CA", primaryDr:"Dr. Normand" },
+  { id:"p26", name:"Mason Wright",      sin:"MW-6622-08",   dob:"8/14/74",  age:"51y", carrier:"Delta Dental PPO", carrierId:"DD-6622-08", lastVisit:"3/30/26", balance:0,     flags:[], avatar:2, sex:"M", phone:"(415) 555-6622", email:"m.wright@mail.co", address:"99 Ash St, Daly City CA", primaryDr:"Dr. Sidny" },
+  { id:"p27", name:"Eva Romero",        sin:"ER-3344-11",   dob:"5/12/80",  age:"45y", carrier:"Guardian PPO",     carrierId:"GD-3344-11", lastVisit:"4/1/26",  balance:0,     flags:[], avatar:0, sex:"F", phone:"(415) 555-3344", email:"e.romero@mail.co", address:"22 Hudson, San Francisco CA", primaryDr:"Dr. Sidny" },
+  { id:"p28", name:"Theo Larsen",       sin:"TL-7799-04",   dob:"10/3/96",  age:"29y", carrier:"Aetna PPO",        carrierId:"AET-7799-04", lastVisit:"2/10/26", balance:0,     flags:[], avatar:3, sex:"M", phone:"(415) 555-7799", email:"theo.l@mail.co", address:"612 Walnut, San Francisco CA", primaryDr:"Dr. Sidny" },
+];
+
+const patientById = (id) => PATIENTS.find(p => p.id === id);
+const apptById = (id) => APPTS.find(a => a.id === id);
+
+Object.assign(window, {
+  AVATARS, OPERATORIES, STATUS, APPTS, PATIENTS,
+  DAY_START, DAY_END, ROW_MINUTES, ROW_HEIGHT, minsToY, fmtTime,
+  patientById, apptById,
+});
