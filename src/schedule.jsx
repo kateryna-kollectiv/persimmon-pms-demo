@@ -1,7 +1,7 @@
 // Schedule day view + appointment grid
 const HOURS = (() => {
   const out = [];
-  for (let h=DAY_START; h<DAY_END; h++) out.push(h*60);
+  for (let m=DAY_START*60; m<DAY_END*60; m+=ROW_MINUTES) out.push(m);
   return out;
 })();
 
