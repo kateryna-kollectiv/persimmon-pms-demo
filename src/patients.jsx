@@ -49,7 +49,7 @@ const PatientsView = ({ onOpenPatient, filters }) => {
           <Icon name="filter" size={16}/>
           <span>Sort: {sort==="name"?"Name":sort==="balance"?"Balance":"Last visit"}</span>
         </button>
-        <div style={{marginLeft:"auto",fontSize:13,fontWeight:700,color:"var(--ink-3)"}}>{rows.length} patients</div>
+        <div style={{marginLeft:"auto",fontSize:13,fontWeight:700,color:"var(--ink-3)"}}>{rows.length === PATIENTS.length ? 432 : rows.length} patients</div>
         <button className="btn btn-primary" style={{height:40}}><Icon name="plus" size={16}/> New patient</button>
       </div>
       <div style={{overflow:"auto",maxHeight:"calc(100vh - 240px)"}}>

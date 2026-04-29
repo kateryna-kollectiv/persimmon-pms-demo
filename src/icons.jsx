@@ -41,7 +41,7 @@ const Icon = ({ name, size = 20, stroke = 2, ...rest }) => {
     copy: <><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></>,
     msg: <><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></>,
     clock: <><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></>,
-    listTodo: <><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M5 7l1 1 2-2"/><rect x="3" y="13" width="6" height="6" rx="1"/><path d="M5 15l1 1 2-2"/><path d="M13 6h8M13 16h8"/></>,
+    listTodo: <><path d="M11 18H3"/><path d="m15 18 2 2 4-4"/><path d="M16 12H3"/><path d="M16 6H3"/></>,
     alertCircle: <><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></>,
     flag: <><path d="M4 21V4M4 4h13l-2 4 2 4H4"/></>,
     link: <><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1 1"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1-1"/></>,

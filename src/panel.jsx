@@ -165,7 +165,7 @@ const SidePanel = ({ open, payload, onClose, onConfirm, onSeat, onComplete, onOp
                 Floss tears intermittently around #19.
               </p>
             </div>
-            <div className="section-card">
+            <div className="section-card" style={{display:"none"}}>
               <h3 className="section-title">Vitals</h3>
               <div className="vitals">
                 <div className="vital"><div className="l">BP</div><div className="v">118/76</div><div className="d">Normal</div></div>

@@ -55,31 +55,80 @@ const TaskRow = ({ task, onClick }) => {
 
 };
 
-const Huddle = ({ onOpenTask }) => {
-  const [hoverTask, setHoverTask] = React.useState(null);
+const BRIEFING = [
+{ time: "9:00am", patientId: "p1", name: "Maya Hollande", tags: ["approve treatment plan", "schedule family recare"] },
+{ time: "10:00am", patientId: "p11", name: "Andrea Pop", tags: ["schedule recare"] },
+{ time: "10:00am", patientId: "p18", name: "Tom Whitfield", tags: ["outstanding balance"] },
+{ time: "11:30am", patientId: "p3", name: "Peter Harrison", tags: ["verify insurance"] },
+{ time: "1:00pm", patientId: "p2", name: "Roberta Delacroix", tags: ["crown seat", "narrative for D2740"] },
+{ time: "2:00pm", patientId: "p4", name: "Ethan Park", tags: ["pre-med consent"] },
+{ time: "3:30pm", patientId: "p13", name: "Sara Ito", tags: ["COB mismatch", "collect $312"] }];
+
+
+const Huddle = ({ onOpenTask, onGoSchedule }) => {
+  const [briefingExpanded, setBriefingExpanded] = React.useState(false);
+  const briefingShown = briefingExpanded ? BRIEFING : BRIEFING.slice(0, 3);
 
   return (
     <div className="canvas canvas-huddle">
       <div className="huddle-layout">
 
-        {/* ── LEFT COLUMN: Schedule Utilization + Total Patient Visits ── */}
+        {/* ── LEFT COLUMN: Persimmon AI + Briefing + Total Patient Visits ── */}
         <div className="hud-col left">
-          <div className="kpi-util">
-            <h3 className="kpi-title">Schedule Utilization</h3>
-            <p className="kpi-sub">Percentage of provider chair time booked across all operatories today.</p>
-            <div className="util-ring">
-              <Ring value={84.67} color="var(--olive)" track="#F7F6F3" size={300} stroke={18} />
-              <div className="util-center">
-                <div className="v">
-                  <span className="big">84.67</span>
-                  <span className="pct">%</span>
-                </div>
-                <div className="l">Today</div>
+
+          {/* Persimmon AI — orange-red hero card */}
+          <div className="kpi-ai">
+            <div className="ai-glow" aria-hidden="true" />
+            <div className="ai-top">
+              <div className="ai-badge">
+                <Icon name="sparkle" size={14} stroke={2.2} />
+              </div>
+              <div className="ai-title-wrap">
+                <div className="ai-eyebrow">Today, automated</div>
+                <div className="ai-title">Persimmon AI</div>
               </div>
             </div>
-            <TrendIcon up value="+12.4%" />
+            <ul className="ai-stats">
+              <li><span className="ai-num">37<span className="ai-num-sub">/39</span></span><span className="ai-lbl">Appointments verified</span></li>
+              <li><span className="ai-num">4</span><span className="ai-lbl">Claims appealed</span></li>
+              <li><span className="ai-num">14</span><span className="ai-lbl">Claims posted</span></li>
+              <li><span className="ai-num">2</span><span className="ai-lbl">Schedule backfilled</span></li>
+            </ul>
           </div>
 
+          {/* Briefing */}
+          <div className="kpi-briefing">
+            <div className="brief-head">
+              <h3>Briefing</h3>
+              <button className="brief-go" onClick={onGoSchedule} aria-label="Open Schedule">
+                <Icon name="arrowUpR" size={14} stroke={2.5} />
+              </button>
+            </div>
+            <div className="brief-body-wrap">
+              <p className="kpi-sub" style={{ margin: "0 0 4px" }}>Today's appointments &amp; what to handle at each.</p>
+              <ul className="brief-list">
+                {briefingShown.map((b, i) =>
+                <li key={i} className="brief-row">
+                    <div className="brief-time">{b.time}</div>
+                    <div className="brief-body">
+                      <div className="brief-name">{b.name}</div>
+                      <div className="brief-tags">
+                        {b.tags.map((t, j) => <span key={j} className="brief-tag">{t}</span>)}
+                      </div>
+                    </div>
+                  </li>
+                )}
+              </ul>
+              <button className="brief-more" onClick={() => setBriefingExpanded((v) => !v)}>
+                {briefingExpanded ?
+                <>Show less <Icon name="chevD" size={14} stroke={2.5} style={{ transform: "rotate(180deg)" }} /></> :
+                <>Show {BRIEFING.length - 3} more <Icon name="chevD" size={14} stroke={2.5} /></>
+                }
+              </button>
+            </div>
+          </div>
+
+          {/* Total Patient Visits */}
           <div className="kpi-visits">
             <div className="vis-glow" aria-hidden="true" />
             <div className="vis-top">
@@ -108,6 +157,22 @@ const Huddle = ({ onOpenTask }) => {
         <div className="hud-col middle">
           <div className="kpi-grid">
 
+            {/* Schedule Utilization — moved here as first card */}
+            <div className="kpi white kpi-tall kpi-util-mini">
+              <h3 className="kpi-title">Schedule Utilization</h3>
+              <p className="kpi-sub">Provider chair time booked today.</p>
+              <div className="kpi-corner-icon" style={{ background: "#EDF1DE", color: "var(--olive)" }}>
+                <Icon name="activity" size={14} stroke={2.5} />
+              </div>
+              <div className="util-mini-ring">
+                <Ring value={84.67} color="var(--olive)" track="#F2F0EA" size={120} stroke={11} />
+                <div className="util-mini-center">
+                  <div className="v"><span className="big">84.67</span><span className="pct">%</span></div>
+                </div>
+              </div>
+              <TrendIcon up value="+12.4%" />
+            </div>
+
             <div className="kpi peach kpi-tall">
               <h3 className="kpi-title">Gross Dentist Prod</h3>
               <p className="kpi-sub">Production billed by dentists today.</p>
@@ -123,9 +188,8 @@ const Huddle = ({ onOpenTask }) => {
               <div className="kpi-corner-icon" style={{ background: "#DBEFE7", color: "#5A7A2F" }}>
                 <Icon name="check" size={14} stroke={3} />
               </div>
-              <div className="kpi-spacer" />
+              <div className="kpi-spacer" style={{ opacity: "1" }} />
               <div className="kpi-value" style={{ position: "relative", zIndex: 2 }}>84.38<span className="kpi-cents">%</span></div>
-              <HalfArc value={84.38} />
             </div>
 
             <div className="kpi sky kpi-tall">
@@ -138,7 +202,8 @@ const Huddle = ({ onOpenTask }) => {
             </div>
 
             <div className="kpi yellow kpi-tall">
-              <h3 className="kpi-title">Account Past Due AR</h3>
+              <h3 className="kpi-title">Past Due Accounts Receivable 
+</h3>
               <p className="kpi-sub">Outstanding patient balance over 60 days.</p>
               <div className="kpi-corner-icon" style={{ background: "#FFEEE0", color: "#B65A1F" }}>
                 <Icon name="alertCircle" size={14} stroke={2.5} />
@@ -197,8 +262,7 @@ const Huddle = ({ onOpenTask }) => {
               <span className="task-count">{TASKS.length}</span>
             </div>
             <div className="task-card-body">
-              {TASKS.map((t, i) =>
-              <TaskRow key={t.id} task={t} onClick={() => onOpenTask(t.id)} />
+              {TASKS.map((t, i) => <TaskRow key={t.id} task={t} onClick={() => onOpenTask(t.id)} />
               )}
             </div>
             <div className="task-card-foot">

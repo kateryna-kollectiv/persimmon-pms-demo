@@ -39,6 +39,9 @@ const TopBar = ({ title, sub, onTasksClick }) =>
         <Icon name="bell" size={20} />
         <span className="bell-dot" aria-hidden="true" />
       </button>
+      <button className="topbar-avatar" title="Sasha (you)" aria-label="Account">
+        <div className="topbar-avatar-img" style={{ backgroundImage: `url(${AVATARS[1]})` }} />
+      </button>
     </div>
   </div>;
 

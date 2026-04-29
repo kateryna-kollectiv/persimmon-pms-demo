@@ -1,7 +1,15 @@
+// Tooth chart renderer — uses PNG images (assets/teeth/t{N}.png)
+// Each PNG already contains 3 stacked views: occlusal (top), root profile, and side view.
+// Universal Numbering 1–32:
+//   Molars: 1,2,3, 14,15,16, 17,18,19, 30,31,32
+//   Premolars: 4,5, 12,13, 20,21, 28,29
+//   Canines: 6, 11, 22, 27
+//   Incisors: 7,8,9,10, 23,24,25,26
+
 const TOOTH_TYPE = (n) => {
-  const molars = new Set([1, 2, 3, 14, 15, 16, 17, 18, 19, 30, 31, 32]);
-  const premolars = new Set([4, 5, 12, 13, 20, 21, 28, 29]);
-  const canines = new Set([6, 11, 22, 27]);
+  const molars = new Set([1,2,3,14,15,16,17,18,19,30,31,32]);
+  const premolars = new Set([4,5,12,13,20,21,28,29]);
+  const canines = new Set([6,11,22,27]);
   if (molars.has(n)) return "molar";
   if (premolars.has(n)) return "premolar";
   if (canines.has(n)) return "canine";
@@ -14,27 +22,32 @@ const TOOTH_NAMES = (n) => {
   const upper = IS_UPPER(n);
   const arch = upper ? "Maxillary" : "Mandibular";
   if (t === "molar") {
-    const which =
-      n === 1 || n === 16 || n === 17 || n === 32
-        ? "3rd"
-        : n === 2 || n === 15 || n === 18 || n === 31
-          ? "2nd"
-          : "1st";
+    const which = (n===1||n===16||n===17||n===32)?"3rd": (n===2||n===15||n===18||n===31)?"2nd":"1st";
     return `${arch} ${which} molar`;
   }
   if (t === "premolar") {
-    const first = [5, 12, 21, 28].includes(n);
-    return `${arch} ${first ? "1st" : "2nd"} premolar`;
+    const first = [5,12,21,28].includes(n);
+    return `${arch} ${first?"1st":"2nd"} premolar`;
   }
   if (t === "canine") return `${arch} canine`;
-  const central = [8, 9, 24, 25].includes(n);
-  return `${arch} ${central ? "central" : "lateral"} incisor`;
+  const central = [8,9,24,25].includes(n);
+  return `${arch} ${central?"central":"lateral"} incisor`;
 };
 
 const TOOTH_SURFACES = (n) => {
   const t = TOOTH_TYPE(n);
-  if (t === "molar" || t === "premolar") return ["M", "O", "D", "B", "L"];
-  return ["M", "I", "D", "F", "L"];
+  if (t === "molar" || t === "premolar") return ["M","O","D","B","L"];
+  return ["M","I","D","F","L"];
+};
+
+// Color overlays for conditions (applied via blend on top of tooth image)
+const condTint = {
+  cavity:  "rgba(154, 53, 39, 0.42)",
+  decay:   "rgba(154, 53, 39, 0.42)",
+  treated: "rgba(92, 143, 176, 0.42)",
+  crown:   "rgba(201, 172, 115, 0.55)",
+  planned: "rgba(232, 184, 106, 0.45)",
+  rct:     "rgba(140, 108, 176, 0.4)",
 };
 
 const ToothSVG = ({
@@ -47,67 +60,81 @@ const ToothSVG = ({
   onMouseEnter,
   onMouseLeave,
 }) => {
+  const upper = IS_UPPER(num);
   const isMissing = condition === "missing";
+  const tint = condTint[condition];
+
+  // Image is 205x700 = ~3.4 aspect. Render at 48 wide -> 164 tall.
+  const W = 48, H = 164;
 
   return (
     <div
+      className={"tooth-img" + (selected ? " sel" : "") + (hovered ? " hov" : "")}
       style={{
+        width: W,
+        height: H,
         position: "relative",
-        width: 48,
-        height: 124,
         cursor: "pointer",
-        flexShrink: 0,
-        filter: hovered
-          ? "drop-shadow(0 8px 18px rgba(22,43,65,.22))"
-          : "drop-shadow(0 1px 2px rgba(54,54,54,.08))",
-        transform: hovered ? "translateY(-3px) scale(1.06)" : "none",
-        transition: "transform .18s cubic-bezier(.2,.8,.2,1), filter .18s",
-        opacity: isMissing ? 0.3 : 1,
+        userSelect: "none",
+        opacity: isMissing ? 0.32 : 1,
+        transition: "transform .15s cubic-bezier(.2,.8,.2,1)",
+        transform: hovered && !selected ? "translateY(-2px)" : "none",
       }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
       <img
-        src={`assets/teeth/t${num}_tooth.png`}
+        src={`assets/teeth/t${num}.png`}
         alt={`Tooth ${num}`}
+        draggable="false"
         style={{
           width: "100%",
           height: "100%",
           objectFit: "contain",
+          // Lower teeth: roots should sit at the BOTTOM (closest to gum line midline at top)
+          // Image is drawn with crown on top, root at bottom — flip vertically for lower jaw
+          // so root points up toward midline.
+          transform: upper ? "none" : "scaleY(-1)",
           display: "block",
+          pointerEvents: "none",
         }}
       />
 
-      {/* Missing X */}
-      {isMissing && (
-        <svg
-          width="48"
-          height="124"
-          viewBox="0 0 48 124"
-          style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
-        >
-          <g
-            stroke="#A64242"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            opacity="0.75"
-          >
-            <line x1="12" y1="28" x2="36" y2="96" />
-            <line x1="36" y1="28" x2="12" y2="96" />
-          </g>
-        </svg>
-      )}
-
-      {/* Selected ring */}
-      {selected && (
+      {/* Condition tint overlay (multiply blend, masked to image alpha is approximated via opacity) */}
+      {tint && !isMissing && (
         <div
           style={{
             position: "absolute",
             inset: 0,
-            borderRadius: 10,
-            border: "2px dashed var(--persimmon)",
-            background: "rgba(var(--persimmon-rgb, 196,78,53), 0.06)",
+            background: tint,
+            mixBlendMode: "multiply",
+            pointerEvents: "none",
+            borderRadius: 6,
+          }}
+        />
+      )}
+
+      {/* Missing X */}
+      {isMissing && (
+        <svg
+          viewBox="0 0 48 164"
+          style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+        >
+          <path d="M 8 24 L 40 140" stroke="#A64242" strokeWidth="2.4" strokeLinecap="round" opacity="0.7"/>
+          <path d="M 40 24 L 8 140" stroke="#A64242" strokeWidth="2.4" strokeLinecap="round" opacity="0.7"/>
+        </svg>
+      )}
+
+      {/* Selection — red dashed border */}
+      {selected && (
+        <div
+          style={{
+            position: "absolute",
+            inset: -2,
+            border: "1.8px dashed var(--persimmon)",
+            borderRadius: 8,
+            background: "rgba(247,60,31,0.05)",
             pointerEvents: "none",
           }}
         />
@@ -118,24 +145,24 @@ const ToothSVG = ({
         <div
           style={{
             position: "absolute",
-            inset: 0,
-            borderRadius: 10,
-            border: "1.4px solid rgba(0,0,0,.25)",
+            inset: -2,
+            border: "1.4px solid rgba(22,43,65,0.22)",
+            borderRadius: 8,
             pointerEvents: "none",
           }}
         />
       )}
 
-      {/* Planned-procedure dots, top-right */}
+      {/* Planned-procedure dots (top-right) */}
       {planned && planned.length > 0 && (
         <div
           style={{
             position: "absolute",
-            top: 28,
-            right: -4,
+            top: 4,
+            right: 2,
             display: "flex",
             flexDirection: "column",
-            gap: 4,
+            gap: 3,
             pointerEvents: "none",
           }}
         >
@@ -147,7 +174,7 @@ const ToothSVG = ({
                 height: 7,
                 borderRadius: "50%",
                 background: p.color || "var(--persimmon)",
-                border: "1.2px solid #fff",
+                boxShadow: "0 0 0 1.4px #fff",
               }}
             />
           ))}
