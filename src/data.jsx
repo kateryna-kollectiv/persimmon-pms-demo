@@ -4,6 +4,8 @@ const AVATARS = [
   "assets/avatar-2.jpg",
   "assets/avatar-3.jpg",
   "assets/avatar-4.jpg",
+  "assets/avatar-5.jpg",
+  "assets/avatar-6.jpg",
 ];
 
 const OPERATORIES = [
